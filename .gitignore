@@ -1,7 +1,14 @@
+._*
+
 /index/._*
+/index/*.pyc
+/index/*.so
+/index/nsw.egg-info
+
 /index/nsw_python/._*
 /index/ut/._*
 /index/build
+
 /index/ut/*.pyc
 /index/python/._*
 /index/python/*.c

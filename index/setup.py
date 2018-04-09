@@ -5,7 +5,7 @@ import numpy
 
 
 def get_extension(name):
-    python_path = 'nsw_python/{}.pyx'.format(name)
+    python_path = 'python/{}.pyx'.format(name)
     cplus_path = 'nsw/{}.cpp'.format(name)
 
     return Extension(
