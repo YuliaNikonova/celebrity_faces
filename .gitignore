@@ -1,0 +1,8 @@
+/index/._*
+/index/nsw_python/._*
+/index/ut/._*
+/index/build
+/index/ut/*.pyc
+/index/python/._*
+/index/python/*.c
+/index/python/*.cpp
