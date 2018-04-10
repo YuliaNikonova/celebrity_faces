@@ -26,14 +26,31 @@
 import cv2
 from skimage.transform import resize
 import numpy as np
-from os.path import expanduser, join, abspath
+from os.path import expanduser, join, abspath, basename
+from os import listdir
 import tensorflow as tf
 import sys
+import re
 
-FACENET_SRC_DIR = abspath(join(expanduser('~'), 'repos', 'facenet', 'src'))
-sys.path.append(FACENET_SRC_DIR)
-from facenet import get_model_filenames
 
+class FaceDetector():
+    def detect_face(self, img):
+        pass
+
+class HoarOpenCVDetector(FaceDetector):
+    def __init__(self, model_file):
+        self.face_cascade = cv2.CascadeClassifier(model_file)
+
+    def detect_face(self, img):
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
+        scale = 0.15
+        for (x, y, w, h) in faces:
+            x_min = x - int(scale * w)
+            y_min = y - int(scale * h)
+            x_max = x + w + int(scale * w)
+            y_max = y + h + int(scale * h)
+            return img[x_min:x_max, y_min:y_max, :]
 
 
 # from facenet
@@ -44,22 +61,35 @@ def prewhiten(x):
     y = np.multiply(np.subtract(x, mean), 1/std_adj)
     return y
 
+# from facenet
+def get_model_filenames(model_dir):
+    files = listdir(model_dir)
+    meta_files = [s for s in files if s.endswith('.meta')]
+    if len(meta_files)==0:
+        raise ValueError('No meta file found in the model directory (%s)' % model_dir)
+    elif len(meta_files)>1:
+        raise ValueError('There should not be more than one meta file in the model directory (%s)' % model_dir)
+    meta_file = meta_files[0]
+    ckpt = tf.train.get_checkpoint_state(model_dir)
+    if ckpt and ckpt.model_checkpoint_path:
+        ckpt_file = basename(ckpt.model_checkpoint_path)
+        return meta_file, ckpt_file
 
-face_cascade = cv2.CascadeClassifier('haarcascades/haarcascade_frontalface_default.xml')
+    meta_files = [s for s in files if '.ckpt' in s]
+    max_step = -1
+    for f in files:
+        step_str = re.match(r'(^model-[\w\- ]+.ckpt-(\d+))', f)
+        if step_str is not None and len(step_str.groups())>=2:
+            step = int(step_str.groups()[1])
+            if step > max_step:
+                max_step = step
+                ckpt_file = step_str.groups()[0]
+    return meta_file, ckpt_file
 
 
-
-def prepocess_image(img, image_size=160):
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-    scale = 0.15
-    for (x, y, w, h) in faces:
-        x_min = x - int(scale * w)
-        y_min = y - int(scale * h)
-        x_max = x + w + int(scale * w)
-        y_max = y + h + int(scale * h)
+def prepocess_image(img, face_detector, image_size=160):
+    img = face_detector.detect_face(img)
     img = prewhiten(img)
-    img = img[x_min:x_max, y_min:y_max, :]
     img = resize(img, (image_size, image_size))
     return img
 

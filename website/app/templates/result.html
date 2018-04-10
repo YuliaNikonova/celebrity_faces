@@ -16,10 +16,10 @@
 
 <div class="well text-center">
     <div class="col-md-6">
-        <a href="#"><img src="../static/celeb_faces/Aaron_Eckhart_0001.jpg" alt="you" /></a>
+        <a href="#"><img src="{{ url_for('uploaded_file', filename=uploaded_filename) }}" alt="you" /></a>
     </div>
     <div class="col-md-6">
-        <a href="#" ><img src="../static/celeb_faces/Aaron_Eckhart_0001.jpg" alt="celeb" /></a>
+        <a href="#" ><img src="{{ url_for('static', filename=celeb_filename) }}" alt="celeb" /></a>
     </div>
 </div>
 
