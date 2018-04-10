@@ -4,7 +4,7 @@ namespace nsw {
 
 Node::Node() { }
 
-Node::Node(const std::string filePath, std::vector<float> coord)
+Node::Node(const std::string& filePath, const std::vector<float>& coord)
     : FilePath(filePath)
     , Coord(coord)
 { }

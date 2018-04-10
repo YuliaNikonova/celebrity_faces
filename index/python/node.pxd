@@ -10,3 +10,6 @@ cdef extern from "node.h" namespace "nsw":
         const string& get_path()
         string file_path
         vector[float] coord
+
+cdef class PyNode:
+    cdef Node node
