@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="jumbotron text-center">
+  <h1>На какую знаменитость ты похож?</h1>
+</div>
+
+<div class="well text-center">
+    <div class="col-md-6">
+        <a href="#"><img src="{{ url_for('uploaded_file', filename=uploaded_filename) }}" alt="you" /></a>
+    </div>
+    <div class="col-md-6">
+        <a href="#" ><img src="{{ url_for('static', filename=celeb_filename) }}" alt="celeb" /></a>
+    </div>
+</div>
+
+</body>
+</html>
+
