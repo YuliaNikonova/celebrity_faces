@@ -9,7 +9,7 @@
 Все сервисы написаны на Flask.
 
 #### Планы.
-1. Заменить Annoy на свой индекс.
+1. Заменить Annoy на свой индекс. The index will be based on [Navigable Small World algorithm](https://publications.hse.ru/mirror/pubs/share/folder/x5p6h7thif/direct/128296059)
 2. Запускать все сервисы в своих docker'ах через docker-compose.
 3. Заменить датасет лиц знаменитостей на больший.
 4. Сделать сайт красивее.
