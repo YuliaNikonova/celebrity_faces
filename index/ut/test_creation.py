@@ -1,20 +1,20 @@
 import unittest
 
 import numpy as np
-from python.nsw import PyNode, PyDistance_l1, PyDistance_l2
+from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
 
 
 class PyNodeTests(unittest.TestCase):
 
     def test_init_list(self):
         node = PyNode('kek', [1, 2, 3])
-        self.assertEqual(node.get_coord(), [1., 2., 3.])
-        self.assertEqual(node.get_path(), 'kek')
+        self.assertEqual([1., 2., 3.], node.get_coord())
+        self.assertEqual('kek', node.get_path())
 
     def test_init_numpy(self):
         node = PyNode('kek', np.array([1, 2, 3]))
-        self.assertEqual(node.get_coord(), [1., 2., 3.])
-        self.assertEqual(node.get_path(), 'kek')
+        self.assertEqual([1., 2., 3.], node.get_coord())
+        self.assertEqual('kek', node.get_path())
 
 
 class PyDistanceTests(unittest.TestCase):
@@ -22,10 +22,27 @@ class PyDistanceTests(unittest.TestCase):
     node2 = PyNode('lol', [1, 2, 5])
 
     def test_l1(self):
-        self.assertEqual(PyDistance_l1()(self.node1, self.node2), 2)
+        self.assertEqual(2, PyDistance_l1()(self.node1, self.node2))
 
     def test_l2(self):
-        self.assertEqual(PyDistance_l2()(self.node1, self.node2), 4)
+        self.assertEqual(4, PyDistance_l2()(self.node1, self.node2))
+
+
+class PyNSWTests(unittest.TestCase):
+
+    def test_l1(self):
+        nsw = PyNSW('l1')
+        self.assertEqual('l1', nsw.dist_type)
+
+    def test_l2(self):
+        nsw = PyNSW('l2')
+        self.assertEqual('l2', nsw.dist_type)
+
+    def test_fail(self):
+        fake_dist_type = 'l3'
+        with self.assertRaises(TypeError) as context:
+            PyNSW(fake_dist_type)
+        self.assertEqual('Unknown distance type: {}'.format(fake_dist_type), context.exception.message)
 
 
 if __name__ == "__main__":
