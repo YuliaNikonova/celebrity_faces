@@ -8,13 +8,20 @@ class PyNodeTests(unittest.TestCase):
 
     def test_init_list(self):
         node = PyNode('kek', [1, 2, 3])
-        self.assertEqual([1., 2., 3.], node.get_coord())
-        self.assertEqual('kek', node.get_path())
+        self.assertEqual([1., 2., 3.], node.coord)
+        self.assertEqual('kek', node.file_path)
 
     def test_init_numpy(self):
         node = PyNode('kek', np.array([1, 2, 3]))
-        self.assertEqual([1., 2., 3.], node.get_coord())
-        self.assertEqual('kek', node.get_path())
+        self.assertEqual([1., 2., 3.], node.coord)
+        self.assertEqual('kek', node.file_path)
+
+    def test_set_new_values(self):
+        node = PyNode('kek', [1, 2, 3])
+        new_file_path = 'lol'
+
+        node.file_path = new_file_path
+        self.assertEqual(new_file_path, node.file_path)
 
 
 class PyDistanceTests(unittest.TestCase):

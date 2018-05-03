@@ -17,4 +17,8 @@ const std::string& Node::get_path() const {
     return filePath;
 }
 
+void Node::set_path(const std::string& newFilePath) {
+    filePath = newFilePath;
+}
+
 }
