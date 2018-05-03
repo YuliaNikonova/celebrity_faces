@@ -25,7 +25,7 @@ class PyDistanceTests(unittest.TestCase):
         self.assertEqual(2, PyDistance_l1()(self.node1, self.node2))
 
     def test_l2(self):
-        self.assertEqual(4, PyDistance_l2()(self.node1, self.node2))
+        self.assertEqual(2, PyDistance_l2()(self.node1, self.node2))
 
 
 class PyNSWTests(unittest.TestCase):
