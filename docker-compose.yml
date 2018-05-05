@@ -1,0 +1,18 @@
+version: '3'
+services:
+  website:
+    build: ./website
+    ports:
+     - "5000:5000"
+    environment:
+     - EMBEDDING_SERVICE_URL=http://nn_ebeddings:5001
+     - INDEX_SERVICE_URL=http://index:5002
+    volumes:
+     - ./data/celeb_faces:/website/app/static/celeb_faces/
+    tty: true
+  index:
+    build: ./index
+    ports:
+     - "5002:5002"
+    volumes:
+     - ./data:/index/data

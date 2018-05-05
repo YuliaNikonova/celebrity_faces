@@ -1,6 +1,5 @@
-
 DEBUG = False
 TESTING = False
-INDEX_FILENAME = abspath(join('/index', 'data', 'index.ann'))
-PATHS_JSON = abspath(join('/index', 'data', 'paths.json'))
-EMBEDDING_JSON = abspath(join('/index', 'data', 'embeddings.json'))
+INDEX_FILENAME = '/index/data/index.ann'
+PATHS_JSON = '/index/data/paths.json'
+EMBEDDING_JSON = '/index/data/embeddings.json'

@@ -29,7 +29,6 @@ import numpy as np
 from os.path import expanduser, join, abspath, basename
 from os import listdir
 import tensorflow as tf
-import sys
 import re
 
 

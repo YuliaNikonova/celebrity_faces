@@ -16,5 +16,5 @@ COPY app/*.py /index/app/
 COPY app/default_config /index/app
 
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
-CMD ["chmod +x", "run_in_container.sh"]
-CMD ["./run_in_container.s"]
+RUN chmod +x run_in_container.sh
+CMD ["./run_in_container.sh"]
