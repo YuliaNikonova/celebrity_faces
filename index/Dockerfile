@@ -5,16 +5,41 @@ RUN echo "http://dl-8.alpinelinux.org/alpine/edge/community" >> /etc/apk/reposit
 RUN apk --no-cache --update-cache add gcc gfortran python python-dev py-pip build-base wget freetype-dev libpng-dev openblas-dev
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
-WORKDIR /index
 
-COPY run_in_container.sh /index
-COPY index.py /index
-COPY requirements.txt /index
-COPY docker_config /index/
+RUN wget https://ftp.gnu.org/gnu/gcc/gcc-4.8.4/gcc-4.8.4.tar.gz
+RUN tar xzf gcc-4.8.4.tar.gz
 
-COPY app/*.py /index/app/
-COPY app/default_config /index/app
+WORKDIR /gcc-4.8.4
 
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
-RUN chmod +x run_in_container.sh
-CMD ["./run_in_container.sh"]
+RUN ./contrib/download_prerequisites
+
+RUN mkdir objdir
+
+WORKDIR /objdir
+
+RUN ../gcc-4.8.4/configure --prefix=$HOME/gcc-4.8.4 --enable-languages=c,c++ --disable-multilib
+
+#WORKDIR /index
+
+#COPY run_in_container.sh /index
+#COPY index.py /index
+#COPY requirements.txt /index
+#COPY docker_config /index
+#COPY setup.py /index
+
+#COPY app/*.py /index/app/
+#COPY app/default_config /index/app
+#COPY python/*.py /index/python/
+#COPY python/*.pyx /index/python/
+#COPY python/*.pxd /index/python/
+#COPY src/*.cpp /index/src/
+#COPY src/*.h /index/src/
+#COPY ut/*.py /index/ut/
+
+
+#RUN pip install Flask
+#RUN pip install annoy
+#RUN pip install jsonpickle
+#RUN pip install Cython==0.28.1
+#RUN chmod +x run_in_container.sh
+#CMD ["./run_in_container.sh"]
