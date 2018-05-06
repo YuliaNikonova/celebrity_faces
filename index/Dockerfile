@@ -1,9 +1,17 @@
-FROM python:3.5-alpine
+FROM ubuntu:latest
 
 
-RUN echo "http://dl-8.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-RUN apk --no-cache --update-cache add gcc gfortran python python-dev py-pip build-base wget freetype-dev libpng-dev openblas-dev
-RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
+RUN apt-get update \
+  && apt-get install -y wget python3-pip python3-dev \
+  && cd /usr/local/bin \
+  && ln -s /usr/bin/python3 python \
+  && pip3 install --upgrade pip
+
+RUN pip install Flask
+RUN pip install annoy
+RUN pip install jsonpickle
+RUN pip install Cython==0.28.1
+
 
 
 RUN wget https://ftp.gnu.org/gnu/gcc/gcc-4.8.4/gcc-4.8.4.tar.gz
@@ -17,7 +25,7 @@ RUN mkdir objdir
 
 WORKDIR /objdir
 
-RUN ../gcc-4.8.4/configure --prefix=$HOME/gcc-4.8.4 --enable-languages=c,c++ --disable-multilib
+RUN ../gcc-4.8.4/configure --prefix=$HOME/gcc-4.8.4 --enable-languages=c,c++
 
 #WORKDIR /index
 
