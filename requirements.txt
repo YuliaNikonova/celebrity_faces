@@ -1,3 +1,6 @@
+
+Cython==0.28.1
+
 tensorflow==1.7
 scipy
 scikit-learn
@@ -9,3 +12,4 @@ requests
 psutil
 flask
 scikit-image
+

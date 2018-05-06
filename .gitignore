@@ -1,0 +1,15 @@
+build.sh
+._*
+
+/index/._*
+/index/*.pyc
+/index/nsw.egg-info
+
+/index/build
+/index/python/._*
+/index/python/*.cpp
+/index/python/*.so
+/index/python/*.pyc
+
+/index/ut/._*
+/index/ut/*.pyc
