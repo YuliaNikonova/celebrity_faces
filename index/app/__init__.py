@@ -1,22 +1,35 @@
 from annoy import AnnoyIndex
-import numpy as np
 from flask import Flask
 from os.path import expanduser, join, abspath
-
-MODEL_DIR = abspath(join(expanduser('~'), 'models', 'facenet', '20170512-110547'))
-
-
-INDEX_FILENAME = abspath(join(expanduser('~'), 'repos', 'celebrity_faces', 'data', 'index.ann'))
-PATHS_NPY = abspath(join(expanduser('~'), 'repos', 'celebrity_faces', 'data', 'paths.npy')) #'data/paths.npy'
-EMBEDDING_NPY = abspath(join(expanduser('~'), 'repos', 'celebrity_faces', 'data', 'embeddings.npy'))
+from os import environ
+import json
 
 
-print(EMBEDDING_NPY)
+app = Flask(__name__)
+app.config.from_pyfile('default_config')
+if environ.get('CF_INDEX_SETTINGS') is not None:
+    app.config.from_envvar('CF_INDEX_SETTINGS')
 
+INDEX_FILENAME = app.config['INDEX_FILENAME']
+PATHS_JSON = app.config['PATHS_JSON']
+EMBEDDING_JSON = app.config['EMBEDDING_JSON']
+
+
+
+
+with open(PATHS_JSON, 'r') as fp:
+    PATHS = json.load(fp)
+
+with open(EMBEDDING_JSON, 'r') as fp:
+    embeddings = json.load(fp)
+
+
+'''
 PATHS = np.load(PATHS_NPY)
 embeddings = np.load(EMBEDDING_NPY)
+'''
 
-dim = embeddings.shape[1]
+dim = len(embeddings[0])
 embedding_index = AnnoyIndex(dim)
 try:
     embedding_index.load(INDEX_FILENAME)
@@ -34,6 +47,6 @@ except FileNotFoundError:
         embedding_index.load(INDEX_FILENAME)
 
 
-app = Flask(__name__)
+
 
 from app import routes

@@ -1,0 +1,5 @@
+DEBUG = False
+TESTING = False
+INDEX_FILENAME = '/index/data/index.ann'
+PATHS_JSON = '/index/data/paths.json'
+EMBEDDING_JSON = '/index/data/embeddings.json'

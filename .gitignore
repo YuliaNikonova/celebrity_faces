@@ -1,3 +1,4 @@
+
 build.sh
 ._*
 
@@ -13,3 +14,27 @@ build.sh
 
 /index/ut/._*
 /index/ut/*.pyc
+
+index/local_config
+.DS_Store
+.idea/
+.ipynb_checkpoints/
+*.ipynb
+data/
+index/.DS_Store
+index/__pycache__/
+index/app/.DS_Store
+index/app/__pycache__/
+index/config.py
+nn_embeddings/.DS_Store
+nn_embeddings/__pycache__/
+nn_embeddings/app/.DS_Store
+nn_embeddings/app/__pycache__/
+nn_embeddings/app/models/
+test.ipynb
+website/.DS_Store
+website/__pycache__/
+website/app/.DS_Store
+website/app/__pycache__/
+website/app/static/
+
