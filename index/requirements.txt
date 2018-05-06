@@ -1,3 +1,4 @@
 Flask
 annoy
 jsonpickle
+Cython==0.28.1
