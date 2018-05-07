@@ -1,31 +1,52 @@
 FROM ubuntu:latest
 
-
 RUN apt-get update \
-  && apt-get install -y wget python3-pip python3-dev \
-  && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip
+    && apt-get upgrade -y \
+    && apt-get install -y \
+    build-essential \
+    ca-certificates \
+    gcc \
+    git \
+    wget \
+    libpq-dev \
+    make \
+    python-pip \
+    python2.7 \
+    python2.7-dev \
+    ssh \
+    && apt-get autoremove \
+    && apt-get clean
+
+
+
+RUN apt-get install -y gcc-4.8
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+
+
+RUN apt-get install -y g++-4.8
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+
 
 RUN pip install Flask
 RUN pip install annoy
 RUN pip install jsonpickle
 RUN pip install Cython==0.28.1
+RUN pip install numpy
 
 
+WORKDIR /index
 
-RUN wget https://ftp.gnu.org/gnu/gcc/gcc-4.8.4/gcc-4.8.4.tar.gz
-RUN tar xzf gcc-4.8.4.tar.gz
+COPY setup.py /index
+COPY python/*.py /index/python/
+COPY python/*.pyx /index/python/
+COPY python/*.pxd /index/python/
+COPY src/*.cpp /index/src/
+COPY src/*.h /index/src/
+COPY ut/*.py /index/ut/
 
-WORKDIR /gcc-4.8.4
 
-RUN ./contrib/download_prerequisites
-
-RUN mkdir objdir
-
-WORKDIR /objdir
-
-RUN ../gcc-4.8.4/configure --prefix=$HOME/gcc-4.8.4 --enable-languages=c,c++
+RUN python setup.py build_ext --inplace
+RUN python setup.py install
 
 #WORKDIR /index
 
@@ -37,17 +58,6 @@ RUN ../gcc-4.8.4/configure --prefix=$HOME/gcc-4.8.4 --enable-languages=c,c++
 
 #COPY app/*.py /index/app/
 #COPY app/default_config /index/app
-#COPY python/*.py /index/python/
-#COPY python/*.pyx /index/python/
-#COPY python/*.pxd /index/python/
-#COPY src/*.cpp /index/src/
-#COPY src/*.h /index/src/
-#COPY ut/*.py /index/ut/
 
-
-#RUN pip install Flask
-#RUN pip install annoy
-#RUN pip install jsonpickle
-#RUN pip install Cython==0.28.1
 #RUN chmod +x run_in_container.sh
 #CMD ["./run_in_container.sh"]
