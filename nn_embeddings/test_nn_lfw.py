@@ -1,20 +1,19 @@
 import os
 import sys
 import numpy as np
-
+from os.path import abspath, dirname, join
 from tqdm import trange
 
 FACENET_SRC_DIR = os.getenv('FACENET_SRC_DIR',
-                            os.path.abspath(os.path.join(os.path.dirname(__file__), 'facenet_src')))
+                            abspath(join(dirname(__file__), 'facenet_src')))
 sys.path.append(FACENET_SRC_DIR)
-
-MODEL_DIR = 'models/20170512-110547'
-
 PAIRS_PATH = os.getenv('PAIRS_PATH',
-                       os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'data', 'pairs.txt'))
+                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'pairs.txt')))
+
+
 
 LFW_RAW_PATH = os.getenv('LFW_RAW_PATH',
-                         os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'data', 'lfw_raw'))
+                         abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'lfw_raw')))
 
 from image_processing import *
 
@@ -41,7 +40,7 @@ def test_nn():
     nrof_batches = nrof_images // batch_size
 
     print('Loading net for embeddings...')
-    sess, images_placeholder, embeddings, phase_train_placeholder = get_tf_session(MODEL_DIR)
+    sess, images_placeholder, embeddings, phase_train_placeholder = get_tf_session()
 
     try:
 
