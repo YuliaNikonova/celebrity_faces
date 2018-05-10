@@ -1,3 +1,0 @@
-[submodule "facenet"]
-	path = facenet
-	url = https://github.com/davidsandberg/facenet
