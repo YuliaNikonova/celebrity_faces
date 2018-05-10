@@ -1,3 +1,0 @@
-[submodule "nn_embeddings/facenet"]
-	path = nn_embeddings/facenet
-	url = https://github.com/davidsandberg/facenet.git
