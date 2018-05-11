@@ -17,8 +17,6 @@ RUN apt-get update \
     && apt-get autoremove \
     && apt-get clean
 
-
-
 RUN apt-get install -y gcc-4.8
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
@@ -37,27 +35,26 @@ RUN pip install numpy
 WORKDIR /index
 
 COPY setup.py /index
-COPY python/*.py /index/python/
-COPY python/*.pyx /index/python/
-COPY python/*.pxd /index/python/
-COPY src/*.cpp /index/src/
-COPY src/*.h /index/src/
-COPY ut/*.py /index/ut/
+#COPY python/*.py /index/python/
+#COPY python/*.pyx /index/python/
+#COPY python/*.pxd /index/python/
+#COPY src/*.cpp /index/src/
+#COPY src/*.h /index/src/
+#COPY ut/*.py /index/ut/
 
 
-RUN python setup.py build_ext --inplace
-RUN python setup.py install
+#RUN python setup.py build_ext --inplace
+#RUN python setup.py install
 
-#WORKDIR /index
 
-#COPY run_in_container.sh /index
-#COPY index.py /index
-#COPY requirements.txt /index
-#COPY docker_config /index
-#COPY setup.py /index
 
-#COPY app/*.py /index/app/
-#COPY app/default_config /index/app
+COPY run_in_container.sh /index
+COPY index.py /index
+COPY docker_config /index
+COPY setup.py /index
 
-#RUN chmod +x run_in_container.sh
-#CMD ["./run_in_container.sh"]
+COPY app/*.py /index/app/
+COPY app/default_config /index/app
+
+RUN chmod +x run_in_container.sh
+CMD ["./run_in_container.sh"]

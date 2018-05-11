@@ -6,14 +6,20 @@ from scipy import misc
 from tqdm import tqdm
 import imageio
 
+from os.path import abspath, join, dirname
+
 FACENET_SRC_DIR = os.getenv('FACENET_SRC_DIR',
-                            os.path.abspath(os.path.join(os.path.dirname(__file__), 'facenet_src')))
+                            abspath(join(dirname(__file__), 'facenet_src')))
 sys.path.append(FACENET_SRC_DIR)
 import align.detect_face
 from facenet import get_model_filenames, prewhiten
 
 MODEL_DIR = os.getenv('MODEL_DIR',
-                      os.path.abspath(os.path.join(os.path.dirname(__file__), 'models', '20170512-110547')))
+                      abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'models', '20170512-110547')))
+
+
+
+print(MODEL_DIR)
 
 
 def get_face_detect_nets():

@@ -43,7 +43,6 @@ def test_nn():
     sess, images_placeholder, embeddings, phase_train_placeholder = get_tf_session()
 
     try:
-
         embedding_size = embeddings.get_shape()[1]
         emb_array = np.zeros((nrof_images, embedding_size))
 
@@ -66,7 +65,7 @@ def test_nn():
         print('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
         print('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
     except Exception as e:
-        print("Error " + e)
+        print("Error " + e.message)
 
     finally:
         sess.close()
