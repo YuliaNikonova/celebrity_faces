@@ -1,4 +1,5 @@
 FROM ubuntu:latest
+ENV HOME /home
 
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -17,36 +18,28 @@ RUN apt-get update \
     && apt-get autoremove \
     && apt-get clean
 
-
-
-RUN apt-get install -y gcc-4.8
+RUN apt-get install -y gcc-4.8 vim
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
+RUN pip install \
+    Flask \
+    annoy \
+    jsonpickle \
+    Cython==0.28.1 \
+    numpy
 
-RUN apt-get install -y g++-4.8
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+COPY __init__.py setup.py $HOME/index/
+COPY python/*.py python/*.pyx python/*.pxd $HOME/index/python/
+COPY src/*.h src/*.cpp $HOME/index/src/
+COPY ut/*.py $HOME/index/ut/
 
+WORKDIR $HOME/index
 
-RUN pip install Flask
-RUN pip install annoy
-RUN pip install jsonpickle
-RUN pip install Cython==0.28.1
-RUN pip install numpy
-
-
-WORKDIR /index
-
-COPY setup.py /index
-COPY python/*.py /index/python/
-COPY python/*.pyx /index/python/
-COPY python/*.pxd /index/python/
-COPY src/*.cpp /index/src/
-COPY src/*.h /index/src/
-COPY ut/*.py /index/ut/
-
-
-RUN python setup.py build_ext --inplace
-RUN python setup.py install
+# Install index
+ENV LD_LIBRARY_PATH /usr/local/lib/python2.7/dist-packages/python
+RUN python setup.py build_ext --inplace \
+    && python setup.py install \
+    && python -m unittest discover
 
 #WORKDIR /index
 
