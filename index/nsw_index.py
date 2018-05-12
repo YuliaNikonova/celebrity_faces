@@ -6,7 +6,7 @@ import json
 import jsonpickle
 
 
-nsw = PyNSW('l2')
+
 
 PATHS_JSON = getenv('PATHS_JSON',
                     abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'paths.json')))
@@ -22,7 +22,12 @@ with open(EMBEDDING_JSON, 'r') as fp:
 nodes = [PyNode(path, vector) for path, vector in zip(PATHS, EMBEDDINGS)]
 
 
+nsw = PyNSW('l2')
+for node in nodes:
+    nsw.nn_insert(node, 1, 10)
+
 random_vector = EMBEDDINGS[100]
+print(PATHS[100])
 print(random_vector)
 
 neighbors = nsw.nn_search(PyNode('1', random_vector), 5, 3)
