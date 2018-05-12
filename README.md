@@ -10,7 +10,7 @@
 Все сервисы написаны на Python/Flask.
 
 #### Что изменилось с промежуточного дедлайна и что нужно доделать.
-1. Написан на C++ идекс будет основан на [Navigable Small World algorithm](https://publications.hse.ru/mirror/pubs/share/folder/x5p6h7thif/direct/128296059), который подключается через cython. Нужно пофиксить тип выдачи поиска соседей и заменить на него annoy. 
+1. Написан на C++ идекс [Navigable Small World algorithm](https://publications.hse.ru/mirror/pubs/share/folder/x5p6h7thif/direct/128296059), который подключается через cython. Нужно пофиксить тип выдачи поиска соседей и заменить на него annoy. 
 2. Добавлены тест accuracy для нейросети на датасете LFW.
 3. Добавлены [тест accuracy](https://github.com/spotify/annoy/blob/master/test/accuracy_test.py) для индекса, сейчас только результаты для annoy. Когда индекс будет пофиксен, в этом тесте будет сравнение accuracy своего индекса и annoy.
 4. Замена датасета лиц знаменитостей на CelebA в процессе досчитывания векторов для изображений в датасете.
