@@ -2,6 +2,8 @@
 build.sh
 ._*
 
+
+
 /index/._*
 /index/*.pyc
 /index/nsw.egg-info
@@ -31,6 +33,9 @@ nn_embeddings/__pycache__/
 nn_embeddings/app/.DS_Store
 nn_embeddings/app/__pycache__/
 nn_embeddings/app/models/
+nn_embeddings/facenet_src/align/__pycache__
+
+*.pyc
 test.ipynb
 website/.DS_Store
 website/__pycache__/
