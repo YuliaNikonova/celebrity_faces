@@ -6,11 +6,13 @@ import json
 import jsonpickle
 
 INDEX_FILENAME = getenv('INDEX_FILENAME',
-                      abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'index_ann')))
+                      abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'index.ann')))
 PATHS_JSON = getenv('PATHS_JSON',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'paths.json')))
 EMBEDDING_JSON = getenv('EMBEDDING_JSON',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'embeddings.json')))
+
+print(INDEX_FILENAME)
 
 app = Flask(__name__)
 

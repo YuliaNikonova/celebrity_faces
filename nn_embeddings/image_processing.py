@@ -3,7 +3,6 @@ import sys
 import tensorflow as tf
 import numpy as np
 from scipy import misc
-from tqdm import tqdm
 import imageio
 
 from os.path import abspath, join, dirname
@@ -17,11 +16,12 @@ from facenet import get_model_filenames, prewhiten
 MODEL_DIR = os.getenv('MODEL_DIR',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'models', '20170512-110547')))
 
+
 def get_face_detect_nets():
     with tf.Graph().as_default():
         sess = tf.Session()
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
-        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=True))
+        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
         with sess.as_default():
             pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
     return pnet, rnet, onet
@@ -36,9 +36,6 @@ def load_image_from_request(request):
 
 
 PNET, RNET, ONET = get_face_detect_nets()
-
-
-
 
 
 def align_data(original_images, pnet=PNET, rnet=RNET, onet=ONET, image_size=160, margin=44):
@@ -59,10 +56,29 @@ def align_data(original_images, pnet=PNET, rnet=RNET, onet=ONET, image_size=160,
         bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
         cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-        prewhitened = prewhiten(aligned)
-        img_list.append(prewhitened)
+        img_list.append(prewhiten(aligned))
     images = np.stack(img_list)
     return images
+
+def align_image(img, pnet=PNET, rnet=RNET, onet=ONET, image_size=160, margin=44):
+    minsize = 20  # minimum size of face
+    threshold = [0.6, 0.7, 0.7]  # three steps's threshold
+    factor = 0.709  # scale factor
+    img_list = []
+    
+    img_size = np.asarray(img.shape)[0:2]
+    bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+    if len(bounding_boxes) < 1:
+        return None
+    det = np.squeeze(bounding_boxes[0, 0:4])
+    bb = np.zeros(4, dtype=np.int32)
+    bb[0] = np.maximum(det[0] - margin / 2, 0)
+    bb[1] = np.maximum(det[1] - margin / 2, 0)
+    bb[2] = np.minimum(det[2] + margin / 2, img_size[1])
+    bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
+    cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
+    aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
+    return aligned
 
 
 def get_tf_session(model_directory=MODEL_DIR):

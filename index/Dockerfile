@@ -2,7 +2,7 @@ FROM ubuntu:latest
 ENV HOME /home
 
 
-ENV INDEX_FILENAME /home/index/data/index_ann
+ENV INDEX_FILENAME /home/index/data/index.ann
 ENV PATHS_JSON /home/index/data/paths.json
 ENV EMBEDDING_JSON /home/index/data/embeddings.json
 ENV ACCURACY_TEST_DATA_PATH /home/index/data/test
