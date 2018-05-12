@@ -1,6 +1,11 @@
 FROM ubuntu:latest
 ENV HOME /home
 
+
+ENV INDEX_FILENAME /home/index/data/index_ann
+ENV PATHS_JSON /home/index/data/paths.json
+ENV EMBEDDING_JSON /home/index/data/embeddings.json
+
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y \
@@ -43,13 +48,10 @@ RUN python setup.py build_ext --inplace \
     && python -m unittest discover
 
 
-COPY run_in_container.sh /index
-COPY index.py /index
-COPY docker_config /index
-COPY setup.py /index
+COPY run.sh $HOME/index
+COPY index.py $HOME/index
+COPY setup.py $HOME/index
+COPY nsw_index.py $HOME/index
 
-COPY app/*.py /index/app/
-COPY app/default_config /index/app
-
-RUN chmod +x run_in_container.sh
-CMD ["./run_in_container.sh"]
+#RUN chmod +x run.sh
+#CMD ["./run.sh"]

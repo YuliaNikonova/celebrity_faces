@@ -1,5 +1,0 @@
-DEBUG = False
-TESTING = False
-INDEX_FILENAME = ''
-PATHS_JSON = ''
-EMBEDDING_JSON = ''

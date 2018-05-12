@@ -17,8 +17,6 @@ from facenet import get_model_filenames, prewhiten
 MODEL_DIR = os.getenv('MODEL_DIR',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'models', '20170512-110547')))
 
-
-
 print(MODEL_DIR)
 
 
