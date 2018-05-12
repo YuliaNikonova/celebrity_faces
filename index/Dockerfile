@@ -5,6 +5,8 @@ ENV HOME /home
 ENV INDEX_FILENAME /home/index/data/index_ann
 ENV PATHS_JSON /home/index/data/paths.json
 ENV EMBEDDING_JSON /home/index/data/embeddings.json
+ENV ACCURACY_TEST_DATA_PATH /home/index/data/test
+
 
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -24,15 +26,24 @@ RUN apt-get update \
     && apt-get clean
 
 
+
+
 RUN apt-get install -y gcc-4.8 vim
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
+
+RUN apt-get install -y libhdf5-dev
 RUN pip install \
     Flask \
     annoy \
     jsonpickle \
     Cython==0.28.1 \
-    numpy
+    numpy \
+    nose \
+    unittest2 \
+    h5py==2.8.0rc1
+
+
 
 COPY __init__.py setup.py $HOME/index/
 COPY python/*.py python/*.pyx python/*.pxd $HOME/index/python/
@@ -52,6 +63,9 @@ COPY run.sh $HOME/index
 COPY index.py $HOME/index
 COPY setup.py $HOME/index
 COPY nsw_index.py $HOME/index
+COPY accuracy_test.py $HOME/index
 
-#RUN chmod +x run.sh
-#CMD ["./run.sh"]
+RUN mkdir $HOME/index/test
+
+RUN chmod +x run.sh
+CMD ["./run.sh"]

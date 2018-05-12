@@ -15,12 +15,12 @@ ENV LANG=C.UTF-8
 
 RUN apt-get update && apt-get install -y libsm6 libxext6 libxrender-dev
 
-RUN pip install Flask
-RUN pip install scikit-learn==0.19.1
-RUN pip install imageio
-RUN pip install jsonpickle
-RUN pip install opencv-python
-RUN pip install tqdm
+RUN pip install Flask \
+                scikit-learn==0.19.1 \
+                imageio \
+                jsonpickle \
+                opencv-python \
+                tqdm
 
 
 COPY nn_embeddings.py /nn_embeddings

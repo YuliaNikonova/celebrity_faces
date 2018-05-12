@@ -17,9 +17,6 @@ from facenet import get_model_filenames, prewhiten
 MODEL_DIR = os.getenv('MODEL_DIR',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'models', '20170512-110547')))
 
-print(MODEL_DIR)
-
-
 def get_face_detect_nets():
     with tf.Graph().as_default():
         sess = tf.Session()
@@ -47,7 +44,7 @@ def align_data(original_images, pnet=PNET, rnet=RNET, onet=ONET, image_size=160,
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
     img_list = []
-    for img in tqdm(original_images):
+    for img in original_images:
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         if len(bounding_boxes) < 1:
