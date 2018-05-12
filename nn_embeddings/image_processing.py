@@ -21,7 +21,7 @@ def get_face_detect_nets():
     with tf.Graph().as_default():
         sess = tf.Session()
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
-        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=True))
         with sess.as_default():
             pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
     return pnet, rnet, onet
