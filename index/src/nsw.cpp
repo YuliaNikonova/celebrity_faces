@@ -38,7 +38,7 @@ NSW::~NSW() {
 };
 
 void NSW::NNInsert (
-    const Node& node,
+    const Node* node,
     std::size_t numIters,
     std::size_t numNeighbors
 ) {
@@ -46,7 +46,7 @@ void NSW::NNInsert (
     auto neighbors = NNSearch(node, numIters, numNeighbors);
     std::size_t nodeIdx = nodes.size();
 
-    nodes.push_back(&node);
+    nodes.push_back(node);
     nodeNeighbors.push_back({});
 
     if (neighbors.empty()) {
@@ -66,11 +66,11 @@ void NSW::NNInsert (
 };
 
 std::vector<nodeData> NSW::NNSearch (
-    const Node& node,
+    const Node* node,
     std::size_t numIters,
     std::size_t numNeighbors
 ) const {
-    if (DEBUG) { std::cout << "\tSearch: " << node << std::endl; }
+    if (DEBUG) { std::cout << "\tSearch: " << *node << std::endl; }
     std::size_t N = nodes.size();
 
     // check if index is empty
@@ -105,7 +105,7 @@ std::vector<nodeData> NSW::NNSearch (
 
         // put random node in candidates
         auto candidateIdx = randomIndices[unvisitedIdx];
-        std::vector<nodeData> tmpResult = {std::make_pair(dist->operator()(node, *nodes[candidateIdx]), candidateIdx)};
+        std::vector<nodeData> tmpResult = {std::make_pair(dist->operator()(node, nodes[candidateIdx]), candidateIdx)};
         candidates.push(tmpResult.back());
         // update visited nodes
         visited[candidateIdx] = true;
@@ -122,7 +122,7 @@ std::vector<nodeData> NSW::NNSearch (
 
             for (auto neighborIdx : nodeNeighbors[candidateIdx]) {
                 if (!visited[neighborIdx]) {
-                    tmpResult.push_back(std::make_pair(dist->operator()(node, *nodes[neighborIdx]), neighborIdx));
+                    tmpResult.push_back(std::make_pair(dist->operator()(node, nodes[neighborIdx]), neighborIdx));
                     candidates.push(tmpResult.back());
                     // update visited nodes
                     visited[neighborIdx] = true;
@@ -153,6 +153,10 @@ std::vector<nodeData> NSW::NNSearch (
         result.pop();
     }
     return neighbors;
+};
+
+const Node* NSW::getNode(std::size_t idx) const{
+    return nodes.at(idx);
 };
 
 }

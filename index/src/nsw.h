@@ -16,15 +16,16 @@ public:
     NSW(const std::string& DistType);
     ~NSW();
     void NNInsert (
-        const Node& node,
+        const Node* node,
         std::size_t numIters,
         std::size_t numNeighbors
     );
     std::vector<nodeData> NNSearch (
-        const Node& node,
+        const Node* node,
         std::size_t numIters,
         std::size_t numNeighbors
     ) const;
+    const Node* getNode (std::size_t idx) const;
 private:
     Distance* dist;
     std::string distType;

@@ -25,4 +25,6 @@ cdef class PyNSW:
         self.nsw.NNInsert(node.node, num_iters, num_neighbors)
 
     def nn_search(self, PyNode node, size_t num_iters, size_t num_neighbors):
-        return self.nsw.NNSearch(node.node, num_iters, num_neighbors)
+        dists, indices = zip(*self.nsw.NNSearch(node.node, num_iters, num_neighbors))
+        file_paths = [self.nsw.getNode(idx).get_path() for idx in indices]
+        return zip(dists, file_paths)
