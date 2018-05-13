@@ -20,7 +20,8 @@ with open(EMBEDDING_JSON, 'r') as fp:
     EMBEDDINGS = json.load(fp)
 
 nodes = [PyNode(path, vector) for path, vector in zip(PATHS, EMBEDDINGS)]
-
+for node in nodes:
+    nsw.nn_insert(node)
 
 random_vector = EMBEDDINGS[100]
 print(random_vector)

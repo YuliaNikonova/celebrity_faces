@@ -1,23 +1,23 @@
 import unittest
 
 import numpy as np
-from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
+from python.index import create_node, PyDistance_l1, PyDistance_l2, PyNSW
 
 
 class PyNodeTests(unittest.TestCase):
 
     def test_init_list(self):
-        node = PyNode('kek', [1, 2, 3])
+        node = create_node('kek', [1, 2, 3])
         self.assertEqual([1., 2., 3.], node.coord)
         self.assertEqual('kek', node.file_path)
 
     def test_init_numpy(self):
-        node = PyNode('kek', np.array([1, 2, 3]))
+        node = create_node('kek', np.array([1, 2, 3]))
         self.assertEqual([1., 2., 3.], node.coord)
         self.assertEqual('kek', node.file_path)
 
     def test_set_new_values(self):
-        node = PyNode('kek', [1, 2, 3])
+        node = create_node('kek', [1, 2, 3])
         new_file_path = 'lol'
 
         node.file_path = new_file_path
@@ -25,8 +25,8 @@ class PyNodeTests(unittest.TestCase):
 
 
 class PyDistanceTests(unittest.TestCase):
-    node1 = PyNode('kek', [1, 2, 3])
-    node2 = PyNode('lol', [1, 2, 5])
+    node1 = create_node('kek', [1, 2, 3])
+    node2 = create_node('lol', [1, 2, 5])
 
     def test_l1(self):
         self.assertEqual(2, PyDistance_l1()(self.node1, self.node2))
