@@ -2,9 +2,9 @@ FROM ubuntu:latest
 ENV HOME /home
 
 
-ENV INDEX_FILENAME /home/index/data/index.ann
-ENV PATHS_JSON /home/index/data/paths.json
-ENV EMBEDDING_JSON /home/index/data/embeddings.json
+ENV INDEX_FILENAME /home/index/data/index_50.ann
+ENV PATHS_JSON /home/index/data/paths_celeba_50000.json
+ENV EMBEDDING_JSON /home/index/data/embedding_celeba_50000.json
 ENV ACCURACY_TEST_DATA_PATH /home/index/data/test
 
 

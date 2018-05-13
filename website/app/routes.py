@@ -23,6 +23,7 @@ def get_embedding_vector(filename):
     try:
         response = requests.post(EMBEDDING_SERVICE_URL, data=open(filename, 'rb').read())
         embedding_vector = response.json()['vector']
+        #print(embedding_vector)
         return embedding_vector
 
     except Exception as e:
@@ -36,13 +37,11 @@ def get_nearest_celeb_filename(embedding_vector):
         response = requests.post(INDEX_SERVICE_URL,
                                  data=json.dumps({'vector': embedding_vector}),
                                  headers={'content-type': 'application/json'})
-        print(response.url)
-
-        print(response.json())
+        print(response.json()['closest_celeb_filename'])
         return response.json()['closest_celeb_filename']
     except Exception as e:
         print(e)
-        return 'Aaron_Eckhart_0001.jpg'
+        return '000001.jpg'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -60,7 +59,6 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            print(abspath(join(app.config['UPLOAD_FOLDER'], filename)))
             file.save(join(app.config['UPLOAD_FOLDER'], filename))
 
             embedding_vector = get_embedding_vector(join(app.config['UPLOAD_FOLDER'], filename))
@@ -69,7 +67,7 @@ def upload_file():
 
             return render_template('result.html',
                                    uploaded_filename=filename,
-                                   celeb_filename='celeb_faces/' + closest_celeb_filename[:-4]+'.jpg')
+                                   celeb_filename='celeb_faces/' + closest_celeb_filename)
     return render_template('index.html')
 
 

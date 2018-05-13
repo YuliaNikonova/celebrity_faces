@@ -8,7 +8,7 @@ services:
      - EMBEDDING_SERVICE_URL=http://nn_embeddings:5001
      - INDEX_SERVICE_URL=http://index:5002
     volumes:
-     - ./data/celeb_faces:/website/app/static/celeb_faces/
+     - ./data/img_celeba:/website/app/static/celeb_faces/
     tty: true
   nn_embeddings:
     build: ./nn_embeddings
