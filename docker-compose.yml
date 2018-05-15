@@ -21,4 +21,4 @@ services:
     ports:
      - "5002:5002"
     volumes:
-     - ./data:/home/index/data
+     - ./data:/home/index_service/data

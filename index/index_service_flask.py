@@ -14,8 +14,6 @@ PATHS_JSON = getenv('PATHS_JSON',
 EMBEDDING_JSON = getenv('EMBEDDING_JSON',
                       abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'embeddings.json')))
 
-print(INDEX_FILENAME)
-
 app = Flask(__name__)
 
 
@@ -41,19 +39,19 @@ except FileNotFoundError:
 
         embedding_index = AnnoyIndex(dim)
         embedding_index.load(INDEX_FILENAME)
-
+'''
 nodes = [PyNode(path, vector) for path, vector in zip(PATHS, embeddings)]
 nsw = PyNSW('l2')
 for node in nodes:
     nsw.nn_insert(node, 1, 1000)
-
+'''
 def get_closest_celeb_filename_annoy(vector):
     closest_celeb_index = embedding_index.get_nns_by_vector(vector, 1)[0]
     return str(PATHS[closest_celeb_index])
 
 
-def get_closest_celeb_filename_nsw(vector):
-    return nsw.nn_search(PyNode('1', vector), 1, 1)[0][1]
+#def get_closest_celeb_filename_nsw(vector):
+#    return nsw.nn_search(PyNode('1', vector), 1, 1)[0][1]
 
 @app.route('/', methods=['POST'])
 def get_closest_vector():
@@ -65,7 +63,7 @@ def get_closest_vector():
     response_pickled = jsonpickle.encode(response)
     return Response(response=response_pickled, status=200, mimetype="application/json")
 
-
-
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5002, debug=False)
 
 
