@@ -2,10 +2,10 @@ FROM ubuntu:latest
 ENV HOME /home
 
 
-ENV INDEX_FILENAME /home/index/data/index_50.ann
-ENV PATHS_JSON /home/index/data/paths_celeba_50000.json
-ENV EMBEDDING_JSON /home/index/data/embedding_celeba_50000.json
-ENV ACCURACY_TEST_DATA_PATH /home/index/data/test
+ENV INDEX_FILENAME /home/index_service/data/index_celeba.ann
+ENV PATHS_JSON /home/index_service/data/paths_celeba.json
+ENV EMBEDDING_JSON /home/index_service/data/embeddings_celeba.json
+ENV ACCURACY_TEST_DATA_PATH /home/index_service/data/test
 
 
 RUN apt-get update \
@@ -45,12 +45,12 @@ RUN pip install \
 
 
 
-COPY __init__.py setup.py $HOME/index/
-COPY python/*.py python/*.pyx python/*.pxd $HOME/index/python/
-COPY src/*.h src/*.cpp $HOME/index/src/
-COPY ut/*.py $HOME/index/ut/
+COPY __init__.py setup.py $HOME/index_service/
+COPY python/*.py python/*.pyx python/*.pxd $HOME/index_service/python/
+COPY src/*.h src/*.cpp $HOME/index_service/src/
+COPY ut/*.py $HOME/index_service/ut/
 
-WORKDIR $HOME/index
+WORKDIR $HOME/index_service
 
 # Install index
 ENV LD_LIBRARY_PATH /usr/local/lib/python2.7/dist-packages/python
@@ -59,13 +59,13 @@ RUN python setup.py build_ext --inplace \
     && python -m unittest discover
 
 
-COPY run.sh $HOME/index
-COPY index.py $HOME/index
-COPY setup.py $HOME/index
-COPY nsw_index.py $HOME/index
-COPY accuracy_test.py $HOME/index
+COPY run.sh $HOME/index_service
+COPY index_service_flask.py $HOME/index_service
+COPY setup.py $HOME/index_service
+COPY nsw_index.py $HOME/index_service
+COPY accuracy_test.py $HOME/index_service
 
-RUN mkdir $HOME/index/test
+RUN mkdir $HOME/index_service/test
 
-RUN chmod +x run.sh
-CMD ["./run.sh"]
+#RUN py
+CMD ["python", "index_service_flask.py"]
