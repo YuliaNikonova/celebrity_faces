@@ -59,7 +59,6 @@ RUN python setup.py build_ext --inplace \
     && python -m unittest discover
 
 
-COPY run.sh $HOME/index_service
 COPY index_service_flask.py $HOME/index_service
 COPY setup.py $HOME/index_service
 COPY nsw_index.py $HOME/index_service
