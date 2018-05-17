@@ -8,6 +8,10 @@ from python.index import create_node, PyNSW
 INDEX_FILENAME = os.getenv(
     'INDEX_FILENAME',
     os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index.ann')))
+NSW_INDEX_FILENAME = os.getenv(
+    'NSW_INDEX_FILENAME',
+    os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_nsw')))
+
 PATHS_JSON = os.getenv(
     'PATHS_JSON',
     os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'paths.json')))
@@ -38,7 +42,7 @@ def create_index(index_path):
 
 
 if __name__ == '__main__':
-    index = create_index(INDEX_FILENAME)
+    index = create_index(NSW_INDEX_FILENAME)
     app = Flask(__name__)
 
     @app.route('/', methods=['POST'])

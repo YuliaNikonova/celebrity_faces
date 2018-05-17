@@ -26,6 +26,8 @@ except ImportError:
 import gzip
 from nose.plugins.attrib import attr
 
+import numpy as np
+
 from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
 from tqdm import tqdm, trange
 
@@ -50,7 +52,7 @@ class AccuracyTest(unittest.TestCase):
         nsw = PyNSW('l2')
         for i in trange(dataset_f['train'].shape[0]):
             v = dataset_f['train'][i]
-            nsw.nn_insert(PyNode(str(i), v), 1, 1000)
+            nsw.nn_insert(PyNode(str(i), v), 1, 100)
 
         if not os.path.exists(index_fn):
             print('adding items', distance, f)
@@ -89,14 +91,44 @@ class AccuracyTest(unittest.TestCase):
 
         self.assertTrue(accuracy > exp_accuracy - 1.0) # should be within 1%
 
-    #def test_glove_25(self):
-    #    self._test_index('glove-25-angular', 69.00)
+    #def test_fashion_mnist(self):
+    #    self._test_index('fashion-mnist-784-euclidean', 90.00)
 
-    #def test_nytimes_16(self):
-    #    self._test_index('nytimes-16-angular', 80.00)
 
-    def test_fashion_mnist(self):
-        self._test_index('fashion-mnist-784-euclidean', 90.00)
+    def test_celeba_embedding(self):
+        PATHS_JSON = os.getenv('PATHS_JSON', abspath(join(__file__, '..', '..', 'data', 'paths_celeba.json')))
+
+        EMBEDDING_JSON = os.getenv('EMBEDDING_JSON', abspath(join(__file__, '..', '..', 'data', 'embeddings_celeba.json')))
+
+
+        INDEX_FILENAME = os.getenv('INDEX_FILENAME', os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba.ann')))
+
+        NSW_INDEX_FILENAME = os.getenv('NSW_INDEX_FILENAME', os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_nsw')))
+
+
+        with open(PATHS_JSON, 'r') as fp:
+            print('Loading paths')
+            paths = np.array(json.load(fp))
+        with open(EMBEDDING_JSON, 'r') as fp:
+            print('Loading embeddings')
+            embeddings = json.load(fp)
+
+        annoy_index = annoy.load(INDEX_FILENAME)
+
+        np.random.seed(42)
+        test_indexes = np.random.randint((len(embeddings)), size=10)
+
+        n, k_annoy, k_nsw = 0, 0, 0
+
+        for i in test_indexes:
+            vector = np.array(embeddings[i])
+            distances = [np.linalg.norm(vector - np.array(e)) for e in embeddings]
+            closest_indexes = np.argsort(distances)
+            print(closest_indexes)
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

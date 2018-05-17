@@ -3,6 +3,7 @@ ENV HOME /home
 
 
 ENV INDEX_FILENAME $HOME/index_service/data/index_celeba.ann
+ENV NSW_INDEX_FILENAME $HOME/index_service/data/index_celeba_nsw
 ENV PATHS_JSON $HOME/index_service/data/paths_celeba.json
 ENV EMBEDDING_JSON $HOME/index_service/data/embeddings_celeba.json
 ENV ACCURACY_TEST_DATA_PATH $HOME/index_service/data/test
@@ -39,10 +40,11 @@ RUN pip install \
     jsonpickle \
     nose \
     numpy \
-    unittest2
+    unittest2 \
+    tqdm
 
 
-COPY __init__.py accuracy_test.py index_service_flask.py nsw_index.py setup.py $HOME/index_service/
+COPY __init__.py accuracy_test.py index_service_flask.py nsw_index.py setup.py create_nsw_index.py $HOME/index_service/
 COPY python/*.py python/*.pyx python/*.pxd $HOME/index_service/python/
 COPY src/*.h src/*.cpp $HOME/index_service/src/
 COPY ut/*.py $HOME/index_service/ut/
@@ -58,4 +60,4 @@ RUN python setup.py build_ext --inplace \
     && python -m unittest discover
 
 
-CMD ["python", "index_service_flask.py"]
+#CMD ["python", "index_service_flask.py"]
