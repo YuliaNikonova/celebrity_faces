@@ -130,7 +130,7 @@ class AccuracyTest(unittest.TestCase):
         nodes = [create_node(path, vector) for path, vector in zip(paths, embeddings)]
         print('Inserting nodes')
         for node in tqdm(nodes):
-            nsw_index.nn_insert(node, 3, 10)
+            nsw_index.nn_insert(node, 5, 1000)
 
         n, k_annoy, k_nsw = 0, 0, 0
 
@@ -143,7 +143,7 @@ class AccuracyTest(unittest.TestCase):
 
             closest_paths_annoy = paths[annoy.get_nns_by_vector(vector, 10, 1000)]
 
-            closest_paths_nsw = [n[1] for n in nsw_index.nn_search(create_node('kek', vector), 3, 10)]
+            closest_paths_nsw = [n[1] for n in nsw_index.nn_search(create_node('kek', vector), 5, 10)]
 
             assert len(closest_paths_real) == 10
             assert len(closest_paths_annoy) == 10
