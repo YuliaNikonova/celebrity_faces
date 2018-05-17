@@ -7,6 +7,7 @@ ENV NSW_INDEX_FILENAME $HOME/index_service/data/index_celeba_nsw
 ENV PATHS_JSON $HOME/index_service/data/paths_celeba.json
 ENV EMBEDDING_JSON $HOME/index_service/data/embeddings_celeba.json
 ENV ACCURACY_TEST_DATA_PATH $HOME/index_service/data/test
+ENV TEST_CASES_FILENAME $HOME/index_service/data/index_celeba_test_cases.json
 
 
 RUN apt-get update \

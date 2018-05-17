@@ -28,8 +28,9 @@ from nose.plugins.attrib import attr
 
 import numpy as np
 
-from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
+from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW, create_node
 from tqdm import tqdm, trange
+import json
 
 
 class AccuracyTest(unittest.TestCase):
@@ -105,6 +106,8 @@ class AccuracyTest(unittest.TestCase):
 
         NSW_INDEX_FILENAME = os.getenv('NSW_INDEX_FILENAME', os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_nsw')))
 
+        TEST_CASES_FILENAME = os.getenv('TEST_CASES_FILENAME',
+            os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_test_cases.json')))
 
         with open(PATHS_JSON, 'r') as fp:
             print('Loading paths')
@@ -113,18 +116,47 @@ class AccuracyTest(unittest.TestCase):
             print('Loading embeddings')
             embeddings = json.load(fp)
 
+        with open(TEST_CASES_FILENAME, 'r') as fp:
+            print('Loading test_cases')
+            test_cases = json.load(fp)
+
+
+        annoy = AnnoyIndex(len(embeddings[0]))    
         annoy_index = annoy.load(INDEX_FILENAME)
 
-        np.random.seed(42)
-        test_indexes = np.random.randint((len(embeddings)), size=10)
+        print('building nsw index')
+        nsw_index = PyNSW('l2')
+        print('Creating nodes')
+        nodes = [create_node(path, vector) for path, vector in zip(paths, embeddings)]
+        print('Inserting nodes')
+        for node in tqdm(nodes):
+            nsw_index.nn_insert(node, 3, 10)
 
         n, k_annoy, k_nsw = 0, 0, 0
 
-        for i in test_indexes:
-            vector = np.array(embeddings[i])
-            distances = [np.linalg.norm(vector - np.array(e)) for e in embeddings]
-            closest_indexes = np.argsort(distances)
-            print(closest_indexes)
+        print('Calculating accuracy on CelebA')
+
+        for tk in test_cases:
+            vector = embeddings[int(tk['embedding_index'])]
+            
+            closest_paths_real = tk['closest_paths_real']
+
+            closest_paths_annoy = paths[annoy.get_nns_by_vector(vector, 10, 1000)]
+
+            closest_paths_nsw = [n[1] for n in nsw_index.nn_search(create_node('kek', vector), 3, 10)]
+
+            assert len(closest_paths_real) == 10
+            assert len(closest_paths_annoy) == 10
+            assert len(closest_paths_nsw) == 10
+
+            n += 10
+            k_annoy += len(set(closest_paths_annoy).intersection(closest_paths_real))
+            k_nsw += len(set(closest_paths_nsw).intersection(closest_paths_real))
+
+
+        print('Annoy accuracy on CelebA embeddings: {:.3f}%'.format(100.0 * k_annoy / n))
+        print('NSW accuracy on CelebA embeddings: {:.3f}%'.format(100.0 * k_nsw / n))
+
 
 
 
