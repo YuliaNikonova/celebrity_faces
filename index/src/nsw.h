@@ -26,6 +26,8 @@ public:
         std::size_t numNeighbors
     ) const;
     const Node* getNode (std::size_t idx) const;
+    void save(const std::string& filePath);
+    void load(const std::string& filePath);
 private:
     Distance* dist;
     std::string distType;

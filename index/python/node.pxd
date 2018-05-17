@@ -5,10 +5,12 @@ from libcpp.vector cimport vector
 cdef extern from "node.h" namespace "nsw":
     cdef cppclass Node:
         Node()
-        const vector[float]& get_coord()
-        const string& get_path()
-        void set_path(const string& new_file_path)
-        void set_coord(const vector[float]& new_coord)
+        const string& getPath()
+        const vector[float]& getCoord()
+        void setPath(const string& new_file_path)
+        void setCoord(const vector[float]& new_coord)
+        string& getPathRef()
+        vector[float]& getCoordRef()
         string file_path
         vector[float] coord
 

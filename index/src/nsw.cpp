@@ -4,38 +4,78 @@
 #include <queue>
 #include <stdexcept>
 
+#include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <iterator>
+#include <sstream>
 
 namespace nsw {
 
 static constexpr double EPSILON = 1e-9;
 static constexpr bool DEBUG = false;
 
+//------------------------------------------------------------
+// Utility functions
+
 std::ostream& operator<<(std::ostream& os, const Node& node) {
-    os << '(' << node.get_path() << ';' << std::setprecision(2);
-    for (auto num : node.get_coord()) {
+    os << '(' << node.getPath() << "; [" << std::setprecision(2);
+    for (auto num : node.getCoord()) {
         os << num << ',';
     }
-    return os << ')';
-};
+    return os << "])";
+}
+
+void write_node(std::ofstream& ofs, const Node* node) {
+    // write file path
+    const auto& filePath = node->getPath();
+    std::size_t len = filePath.size();
+    ofs.write(reinterpret_cast<char *>(&len), sizeof(len));
+    ofs.write(filePath.c_str(), len * sizeof(char));
+
+    // write coordinates
+    const auto& coord = node->getCoord();
+    std::size_t ndim = coord.size();
+    ofs.write(reinterpret_cast<char *>(&ndim), sizeof(ndim));
+    ofs.write(const_cast<char *>(reinterpret_cast<const char *>(&coord[0])), ndim * sizeof(float));
+}
+
+void read_node(std::ifstream& ifs, Node* node) {
+    // read file path
+    auto& filePath = node->getPathRef();
+    std::size_t len;
+    ifs.read(reinterpret_cast<char *>(&len), sizeof(len));
+    std::vector<char> buffer(len);
+    ifs.read(reinterpret_cast<char *>(&buffer[0]), len * sizeof(char));
+    filePath.assign(buffer.begin(), buffer.end());
+
+    // read coordinates
+    auto& coord = node->getCoordRef();
+    std::size_t ndim;
+    ifs.read(reinterpret_cast<char *>(&ndim), sizeof(ndim));
+    coord.resize(ndim);
+    ifs.read(reinterpret_cast<char *>(&coord[0]), ndim * sizeof(float));
+}
+
+//------------------------------------------------------------
 
 NSW::NSW(const std::string& DistType)
     : distType(DistType)
     , nodes(0)
-    , nodeNeighbors(0) {
-        if (distType == "l1") {
-            dist = new Distance_l1();
-        } else if (distType == "l2") {
-            dist = new Distance_l2();
-        } else {
-            throw std::invalid_argument("Unknown distance type");
-        }
-};
+    , nodeNeighbors(0)
+{
+    if (distType == "l1") {
+        dist = new Distance_l1();
+    } else if (distType == "l2") {
+        dist = new Distance_l2();
+    } else {
+        throw std::invalid_argument("Unknown distance type");
+    }
+}
 
 NSW::~NSW() {
     delete dist;
-};
+}
 
 void NSW::NNInsert (
     const Node* node,
@@ -63,7 +103,7 @@ void NSW::NNInsert (
         }
     }
     // std::cout << std::endl;
-};
+}
 
 std::vector<nodeData> NSW::NNSearch (
     const Node* node,
@@ -153,10 +193,60 @@ std::vector<nodeData> NSW::NNSearch (
         result.pop();
     }
     return neighbors;
-};
+}
 
 const Node* NSW::getNode(std::size_t idx) const{
     return nodes.at(idx);
-};
+}
+
+void NSW::save(const std::string& filePath) {
+    std::ofstream ofs(filePath, std::ofstream::binary);
+
+    // save header
+    std::size_t N = nodes.size();
+    ofs.write(reinterpret_cast<char *>(&N), sizeof(N));
+
+    // save nodes
+    for (auto nodePtr : nodes) {
+        write_node(ofs, nodePtr);
+    }
+
+    // save neighbors
+    for (auto neighbors : nodeNeighbors) {
+        std::size_t numNeighbors = neighbors.size();
+        ofs.write(reinterpret_cast<char *>(&numNeighbors), sizeof(numNeighbors));
+        for (auto nodeIdx : neighbors) {
+            ofs.write(reinterpret_cast<char *>(&nodeIdx), sizeof(nodeIdx));
+        }
+    }
+
+    ofs.close();
+}
+
+void NSW::load(const std::string& filePath) {
+    std::ifstream ifs(filePath, std::ifstream::binary);
+
+    // load header
+    std::size_t N;
+    ifs.read(reinterpret_cast<char *>(&N), sizeof(N));
+
+    // load nodes
+    nodes.resize(N);
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        nodes[idx] = new Node();
+        read_node(ifs, const_cast<Node *>(nodes[idx]));
+    }
+
+    // load neighbors
+    nodeNeighbors.resize(N);
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        std::size_t numNeighbors;
+        ifs.read(reinterpret_cast<char *>(&numNeighbors), sizeof(numNeighbors));
+        nodeNeighbors[idx].resize(numNeighbors);
+        ifs.read(reinterpret_cast<char *>(&nodeNeighbors[idx][0]), numNeighbors * sizeof(nodeNeighbors[idx][0]));
+    }
+
+    ifs.close();
+}
 
 }

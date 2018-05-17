@@ -1,3 +1,5 @@
+import errno
+import os
 from python.node cimport PyNode
 from python.dist cimport Distance, Distance_l1, Distance_l2
 
@@ -26,5 +28,18 @@ cdef class PyNSW:
 
     def nn_search(self, PyNode node, size_t num_iters, size_t num_neighbors):
         dists, indices = zip(*self.nsw.NNSearch(node.node, num_iters, num_neighbors))
-        file_paths = [self.nsw.getNode(idx).get_path() for idx in indices]
+        file_paths = [self.nsw.getNode(idx).getPath() for idx in indices]
         return zip(dists, file_paths)
+
+    def save(self, file_path):
+        try:
+            os.makedirs(file_path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+        self.nsw.save(file_path)
+
+    def load(self, file_path):
+        if not os.path.exists(file_path):
+            raise ValueError('Provided index path does not exist: {}'.format(file_path))
+        self.nsw.load(file_path)
