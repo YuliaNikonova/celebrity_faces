@@ -26,8 +26,11 @@ except ImportError:
 import gzip
 from nose.plugins.attrib import attr
 
-from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
+import numpy as np
+
+from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW, create_node
 from tqdm import tqdm, trange
+import json
 
 
 class AccuracyTest(unittest.TestCase):
@@ -50,7 +53,7 @@ class AccuracyTest(unittest.TestCase):
         nsw = PyNSW('l2')
         for i in trange(dataset_f['train'].shape[0]):
             v = dataset_f['train'][i]
-            nsw.nn_insert(PyNode(str(i), v), 1, 1000)
+            nsw.nn_insert(PyNode(str(i), v), 1, 100)
 
         if not os.path.exists(index_fn):
             print('adding items', distance, f)
@@ -89,14 +92,75 @@ class AccuracyTest(unittest.TestCase):
 
         self.assertTrue(accuracy > exp_accuracy - 1.0) # should be within 1%
 
-    #def test_glove_25(self):
-    #    self._test_index('glove-25-angular', 69.00)
+    #def test_fashion_mnist(self):
+    #    self._test_index('fashion-mnist-784-euclidean', 90.00)
 
-    #def test_nytimes_16(self):
-    #    self._test_index('nytimes-16-angular', 80.00)
 
-    def test_fashion_mnist(self):
-        self._test_index('fashion-mnist-784-euclidean', 90.00)
+    def test_celeba_embedding(self):
+        PATHS_JSON = os.getenv('PATHS_JSON', abspath(join(__file__, '..', '..', 'data', 'paths_celeba.json')))
+
+        EMBEDDING_JSON = os.getenv('EMBEDDING_JSON', abspath(join(__file__, '..', '..', 'data', 'embeddings_celeba.json')))
+
+
+        INDEX_FILENAME = os.getenv('INDEX_FILENAME', os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba.ann')))
+
+        NSW_INDEX_FILENAME = os.getenv('NSW_INDEX_FILENAME', os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_nsw')))
+
+        TEST_CASES_FILENAME = os.getenv('TEST_CASES_FILENAME',
+            os.path.abspath(os.path.join(__file__, '..', '..', 'data', 'index_celeba_test_cases.json')))
+
+        with open(PATHS_JSON, 'r') as fp:
+            print('Loading paths')
+            paths = np.array(json.load(fp))
+        with open(EMBEDDING_JSON, 'r') as fp:
+            print('Loading embeddings')
+            embeddings = json.load(fp)
+
+        with open(TEST_CASES_FILENAME, 'r') as fp:
+            print('Loading test_cases')
+            test_cases = json.load(fp)
+
+
+        annoy = AnnoyIndex(len(embeddings[0]))    
+        annoy_index = annoy.load(INDEX_FILENAME)
+
+        print('building nsw index')
+        nsw_index = PyNSW('l2')
+        print('Creating nodes')
+        nodes = [create_node(path, vector) for path, vector in zip(paths, embeddings)]
+        print('Inserting nodes')
+        for node in tqdm(nodes):
+            nsw_index.nn_insert(node, 5, 1000)
+
+        n, k_annoy, k_nsw = 0, 0, 0
+
+        print('Calculating accuracy on CelebA')
+
+        for tk in test_cases:
+            vector = embeddings[int(tk['embedding_index'])]
+            
+            closest_paths_real = tk['closest_paths_real']
+
+            closest_paths_annoy = paths[annoy.get_nns_by_vector(vector, 10, 1000)]
+
+            closest_paths_nsw = [n[1] for n in nsw_index.nn_search(create_node('kek', vector), 5, 10)]
+
+            assert len(closest_paths_real) == 10
+            assert len(closest_paths_annoy) == 10
+            assert len(closest_paths_nsw) == 10
+
+            n += 10
+            k_annoy += len(set(closest_paths_annoy).intersection(closest_paths_real))
+            k_nsw += len(set(closest_paths_nsw).intersection(closest_paths_real))
+
+
+        print('Annoy accuracy on CelebA embeddings: {:.3f}%'.format(100.0 * k_annoy / n))
+        print('NSW accuracy on CelebA embeddings: {:.3f}%'.format(100.0 * k_nsw / n))
+
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

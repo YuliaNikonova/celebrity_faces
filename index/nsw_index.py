@@ -1,6 +1,7 @@
 import json
 from os import getenv
 from os.path import abspath, join
+from tqdm import tqdm
 
 from python.index import create_node, PyNSW
 
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     nodes = [create_node(path, vector) for path, vector in zip(paths, embeddings)]
 
     nsw = PyNSW('l2')
-    for node in nodes:
+    for node in tqdm(nodes):
         nsw.nn_insert(node, 1, 100)
 
     random_vector = embeddings[100]
