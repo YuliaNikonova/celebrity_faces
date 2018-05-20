@@ -1,8 +1,10 @@
 #include <nsw.h>
 #include <algorithm>
+#include <ctime>
 #include <numeric>
 #include <queue>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <fstream>
 #include <iostream>
@@ -83,9 +85,10 @@ NSW::~NSW() {
 void NSW::NNInsert (
     NodeShPtr node,
     std::size_t numIters,
-    std::size_t numNeighbors
+    std::size_t numNeighbors,
+    unsigned int randomSeed /*= 0*/
 ) {
-    auto neighbors = NNSearch(node, numIters, numNeighbors);
+    auto neighbors = NNSearch(node, numIters, numNeighbors, randomSeed);
     std::size_t nodeIdx = nodes.size();
 
     nodes.push_back(node);
@@ -108,17 +111,28 @@ void NSW::NNInsert (
 std::vector<NodeData> NSW::NNSearch (
     const NodeShPtr node,
     std::size_t numIters,
-    std::size_t numNeighbors
+    std::size_t numNeighbors,
+    unsigned int randomSeed /*= 0*/
 ) const {
     if (DEBUG) { std::cout << "Search: " << *node << std::endl; }
     std::size_t N = nodes.size();
+
+    // set random seed
+    if (randomSeed == 0) {
+        std::srand(std::time(0));
+    } else {
+        std::srand(randomSeed);
+    }
 
     // check if index is empty
     if (N == 0) {
         return std::vector<NodeData>();
     }
 
-    std::vector<bool> visited(N, false);
+    std::unordered_map<std::size_t, bool> visited;
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        visited[idx] = false;
+    }
     // decreasing order; size is always <= numNeighbors
     std::priority_queue<NodeData> result;
     // increasing order
@@ -137,35 +151,28 @@ std::vector<NodeData> NSW::NNSearch (
     std::size_t unvisitedIdx = 0;
 
     for (std::size_t iter = 0; iter < numIters; ++iter) {
+        // put random node in candidates
+        while ((unvisitedIdx < N) && (visited[randomIndices[unvisitedIdx]])) { ++unvisitedIdx; }
         if (unvisitedIdx >= N) {
             // exhausted candidates
             break;
         }
-
-        // put random node in candidates
         auto candidateIdx = randomIndices[unvisitedIdx];
-        std::vector<NodeData> tmpResult = {std::make_pair(dist->operator()(node.get(), nodes[candidateIdx].get()), candidateIdx)};
-        candidates.push(tmpResult.back());
-        // update visited nodes
-        visited[candidateIdx] = true;
-        ++unvisitedIdx;
+        candidates.emplace(dist->operator()(node.get(), nodes[candidateIdx].get()), candidateIdx);
+        std::vector<NodeData> tmpResult;
 
         while (true) {
             // get closest node from candidates
             auto curPair = candidates.top();
             candidates.pop();
             // check stop condition
-            // if (!result.empty()) { std::cout << result.top().second << ' ' << curPair.second << std::endl; }
             if (!result.empty() && (curPair.first - result.top().first >= EPSILON) && (tmpResult.size() < numNeighbors)) { break; }
 
-            for (auto neighborIdx : nodeNeighbors[candidateIdx]) {
+            for (auto neighborIdx : nodeNeighbors[curPair.second]) {
                 if (!visited[neighborIdx]) {
                     tmpResult.emplace_back(dist->operator()(node.get(), nodes[neighborIdx].get()), neighborIdx);
                     candidates.push(tmpResult.back());
-                    // update visited nodes
                     visited[neighborIdx] = true;
-                    std::swap(visited[randomIndices[randomIndicesLookup[neighborIdx]]], visited[randomIndices[unvisitedIdx]]);
-                    ++unvisitedIdx;
                 }
             }
 

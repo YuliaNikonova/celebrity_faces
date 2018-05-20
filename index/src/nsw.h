@@ -20,12 +20,14 @@ public:
     void NNInsert (
         NodeShPtr node,
         std::size_t numIters,
-        std::size_t numNeighbors
+        std::size_t numNeighbors,
+        unsigned int randomSeed = 0
     );
     std::vector<NodeData> NNSearch (
         NodeShPtr node,
         std::size_t numIters,
-        std::size_t numNeighbors
+        std::size_t numNeighbors,
+        unsigned int randomSeed = 0
     ) const;
     NodeShPtr getNode (std::size_t idx) const;
     void save(const std::string& filePath);

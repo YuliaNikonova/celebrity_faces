@@ -10,8 +10,8 @@ cdef extern from "nsw.h" namespace "nsw":
 
     cdef cppclass NSW:
         NSW(const string& distType)
-        void NNInsert(NodeShPtr node, size_t numIters, size_t numNeighbors)
-        vector[NodeData] NNSearch(NodeShPtr node, size_t numIters, size_t numNeighbors)
+        void NNInsert(NodeShPtr node, size_t numIters, size_t numNeighbors, unsigned int randomSeed)
+        vector[NodeData] NNSearch(NodeShPtr node, size_t numIters, size_t numNeighbors, unsigned int randomSeed)
         NodeShPtr getNode(size_t idx)
         void save(const string& filePath)
         void load(const string& filePath)

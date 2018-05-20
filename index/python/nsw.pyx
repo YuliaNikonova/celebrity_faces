@@ -1,5 +1,6 @@
 import errno
 import os
+import time
 from cython.operator cimport dereference as deref
 from python.node cimport PyNode
 from python.dist cimport Distance, Distance_l1, Distance_l2
@@ -25,11 +26,13 @@ cdef class PyNSW:
     def dist_type(self, value):
         raise TypeError('You cannot change distance type')
 
-    def nn_insert(self, PyNode node, size_t num_iters, size_t num_neighbors):
-        deref(self.thisptr).NNInsert(node.thisptr, num_iters, num_neighbors)
+    def nn_insert(self, PyNode node, size_t num_iters, size_t num_neighbors, unsigned int random_seed=0):
+        deref(self.thisptr).NNInsert(node.thisptr, num_iters, num_neighbors, random_seed)
 
-    def nn_search(self, PyNode node, size_t num_iters, size_t num_neighbors):
-        search_results = deref(self.thisptr).NNSearch(node.thisptr, num_iters, num_neighbors)
+    def nn_search(self, PyNode node, size_t num_iters, size_t num_neighbors, unsigned int random_seed=0):
+        if random_seed == 0:
+            random_seed = time.time()
+        search_results = deref(self.thisptr).NNSearch(node.thisptr, num_iters, num_neighbors, random_seed)
         dists, indices = zip(*search_results)
         file_paths = [deref(deref(self.thisptr).getNode(idx)).getPath() for idx in indices]
         return zip(dists, file_paths)
