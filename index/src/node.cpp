@@ -1,8 +1,12 @@
 #include <node.h>
+#include <iostream>
 
 namespace nsw {
 
-Node::Node() { }
+Node::Node(const Node& newNode)
+    : filePath(newNode.filePath)
+    , coord(newNode.coord)
+{ }
 
 Node::Node(const std::string& FilePath, const std::vector<float>& Coord)
     : filePath(FilePath)

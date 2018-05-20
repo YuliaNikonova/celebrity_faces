@@ -15,7 +15,7 @@ def get_extension(name, link_args=[]):
         [python_path, cplus_path],
         language='c++',
         include_dirs=['.', 'src', 'python'],
-        extra_compile_args=['-O3', '-Wall', '-std=c++11'],
+        extra_compile_args=['-O3', '-Wall', '-std=c++11', '-ggdb3'],
         extra_link_args=[
             '-g',
             '-L{}/python'.format(os.path.dirname(os.path.realpath(__file__)))
