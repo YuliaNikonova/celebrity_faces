@@ -1,49 +1,94 @@
 #include <nsw.h>
 #include <algorithm>
+#include <ctime>
 #include <numeric>
 #include <queue>
 #include <stdexcept>
+#include <unordered_map>
 
+#include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <iterator>
+#include <sstream>
 
 namespace nsw {
 
 static constexpr double EPSILON = 1e-9;
 static constexpr bool DEBUG = false;
 
+//------------------------------------------------------------
+// Utility functions
+
 std::ostream& operator<<(std::ostream& os, const Node& node) {
-    os << '(' << node.get_path() << ';' << std::setprecision(2);
-    for (auto num : node.get_coord()) {
+    os << '(' << node.getPath() << "; [" << std::setprecision(2);
+    for (auto num : node.getCoord()) {
         os << num << ',';
     }
-    return os << ')';
-};
+    return os << "])";
+}
+
+void write_node(std::ofstream& ofs, const Node* node) {
+    // write file path
+    const auto& filePath = node->getPath();
+    std::size_t len = filePath.size();
+    ofs.write(reinterpret_cast<char *>(&len), sizeof(len));
+    ofs.write(filePath.c_str(), len * sizeof(char));
+
+    // write coordinates
+    const auto& coord = node->getCoord();
+    std::size_t ndim = coord.size();
+    ofs.write(reinterpret_cast<char *>(&ndim), sizeof(ndim));
+    ofs.write(const_cast<char *>(reinterpret_cast<const char *>(&coord[0])), ndim * sizeof(float));
+}
+
+void read_node(std::ifstream& ifs, Node* node) {
+    // read file path
+    auto& filePath = node->getPathRef();
+    std::size_t len;
+    ifs.read(reinterpret_cast<char *>(&len), sizeof(len));
+    std::vector<char> buffer(len);
+    ifs.read(reinterpret_cast<char *>(&buffer[0]), len * sizeof(char));
+    filePath.assign(buffer.begin(), buffer.end());
+
+    // read coordinates
+    auto& coord = node->getCoordRef();
+    std::size_t ndim;
+    ifs.read(reinterpret_cast<char *>(&ndim), sizeof(ndim));
+    coord.resize(ndim);
+    ifs.read(reinterpret_cast<char *>(&coord[0]), ndim * sizeof(float));
+}
+
+//------------------------------------------------------------
 
 NSW::NSW(const std::string& DistType)
     : distType(DistType)
     , nodes(0)
-    , nodeNeighbors(0) {
-        if (distType == "l1") {
-            dist = new Distance_l1();
-        } else if (distType == "l2") {
-            dist = new Distance_l2();
-        } else {
-            throw std::invalid_argument("Unknown distance type");
-        }
-};
+    , nodeNeighbors(0)
+{
+    if (distType == "l1") {
+        dist = new Distance_l1();
+    } else if (distType == "l2") {
+        dist = new Distance_l2();
+    } else {
+        throw std::invalid_argument("Unknown distance type");
+    }
+}
 
 NSW::~NSW() {
     delete dist;
-};
+    for (auto nodeShPtr: nodes) {
+        nodeShPtr.reset();
+    }
+}
 
 void NSW::NNInsert (
-    const Node* node,
+    NodeShPtr node,
     std::size_t numIters,
-    std::size_t numNeighbors
+    std::size_t numNeighbors,
+    unsigned int randomSeed /*= 0*/
 ) {
-    // std::cout << "Init: " << node << std::endl;
-    auto neighbors = NNSearch(node, numIters, numNeighbors);
+    auto neighbors = NNSearch(node, numIters, numNeighbors, randomSeed);
     std::size_t nodeIdx = nodes.size();
 
     nodes.push_back(node);
@@ -57,32 +102,41 @@ void NSW::NNInsert (
         }
     } else {
         for (auto curPair : neighbors) {
-            // std::cout << curPair.first << ' ' << *nodes[curPair.second] << std::endl;
             nodeNeighbors.at(nodeIdx).push_back(curPair.second);
             nodeNeighbors.at(curPair.second).push_back(nodeIdx);
         }
     }
-    // std::cout << std::endl;
-};
+}
 
-std::vector<nodeData> NSW::NNSearch (
-    const Node* node,
+std::vector<NodeData> NSW::NNSearch (
+    const NodeShPtr node,
     std::size_t numIters,
-    std::size_t numNeighbors
+    std::size_t numNeighbors,
+    unsigned int randomSeed /*= 0*/
 ) const {
-    if (DEBUG) { std::cout << "\tSearch: " << *node << std::endl; }
+    if (DEBUG) { std::cout << "Search: " << *node << std::endl; }
     std::size_t N = nodes.size();
+
+    // set random seed
+    if (randomSeed == 0) {
+        std::srand(std::time(0));
+    } else {
+        std::srand(randomSeed);
+    }
 
     // check if index is empty
     if (N == 0) {
-        return std::vector<nodeData>();
+        return std::vector<NodeData>();
     }
 
-    std::vector<bool> visited(N, false);
+    std::unordered_map<std::size_t, bool> visited;
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        visited[idx] = false;
+    }
     // decreasing order; size is always <= numNeighbors
-    std::priority_queue<nodeData> result;
+    std::priority_queue<NodeData> result;
     // increasing order
-    std::priority_queue<nodeData, std::vector<nodeData>, std::greater<nodeData>> candidates;
+    std::priority_queue<NodeData, std::vector<NodeData>, std::greater<NodeData>> candidates;
 
     // preallocate random indices for fast random search
     std::vector<std::size_t> randomIndices(N);
@@ -97,37 +151,28 @@ std::vector<nodeData> NSW::NNSearch (
     std::size_t unvisitedIdx = 0;
 
     for (std::size_t iter = 0; iter < numIters; ++iter) {
-        if (DEBUG) { std::cout << "unvisitedIdx: " << unvisitedIdx << std::endl; }
+        // put random node in candidates
+        while ((unvisitedIdx < N) && (visited[randomIndices[unvisitedIdx]])) { ++unvisitedIdx; }
         if (unvisitedIdx >= N) {
             // exhausted candidates
             break;
         }
-
-        // put random node in candidates
         auto candidateIdx = randomIndices[unvisitedIdx];
-        std::vector<nodeData> tmpResult = {std::make_pair(dist->operator()(node, nodes[candidateIdx]), candidateIdx)};
-        candidates.push(tmpResult.back());
-        // update visited nodes
-        visited[candidateIdx] = true;
-        std::swap(randomIndices[randomIndicesLookup[candidateIdx]], randomIndices[unvisitedIdx]);
-        ++unvisitedIdx;
+        candidates.emplace(dist->operator()(node.get(), nodes[candidateIdx].get()), candidateIdx);
+        std::vector<NodeData> tmpResult;
 
         while (true) {
             // get closest node from candidates
             auto curPair = candidates.top();
             candidates.pop();
             // check stop condition
-            // if (!result.empty()) { std::cout << result.top().second << ' ' << curPair.second << std::endl; }
             if (!result.empty() && (curPair.first - result.top().first >= EPSILON) && (tmpResult.size() < numNeighbors)) { break; }
 
-            for (auto neighborIdx : nodeNeighbors[candidateIdx]) {
+            for (auto neighborIdx : nodeNeighbors[curPair.second]) {
                 if (!visited[neighborIdx]) {
-                    tmpResult.push_back(std::make_pair(dist->operator()(node, nodes[neighborIdx]), neighborIdx));
+                    tmpResult.emplace_back(dist->operator()(node.get(), nodes[neighborIdx].get()), neighborIdx);
                     candidates.push(tmpResult.back());
-                    // update visited nodes
                     visited[neighborIdx] = true;
-                    std::swap(randomIndices[randomIndicesLookup[neighborIdx]], randomIndices[unvisitedIdx]);
-                    ++unvisitedIdx;
                 }
             }
 
@@ -136,10 +181,10 @@ std::vector<nodeData> NSW::NNSearch (
 
         // add nodes from tmpResult to result maintaining its size
         for (auto curPair : tmpResult) {
-            if (DEBUG) { std::cout << "push: " << curPair.first << ' ' << *nodes[curPair.second] << std::endl; }
+            if (DEBUG) { std::cout << "\tpush: " << curPair.first << ' ' << *nodes[curPair.second].get() << std::endl; }
             result.push(curPair);
             if (result.size() > numNeighbors) {
-                if (DEBUG) { std::cout << "pop: " << *nodes[result.top().second] << std::endl; }
+                if (DEBUG) { std::cout << "\tpop: " << *nodes[result.top().second].get() << std::endl; }
                 result.pop();
             }
         }
@@ -147,16 +192,67 @@ std::vector<nodeData> NSW::NNSearch (
 
     // convert result to vector
     auto numResults = result.size();
-    std::vector<nodeData> neighbors(numResults);
+    if (DEBUG) { std::cout << "Collecting " << numResults << " results" << std::endl; }
+    std::vector<NodeData> neighbors(numResults);
     for (std::size_t idx = 0; idx < numResults; ++idx) {
         neighbors[numResults - 1 - idx] = result.top();
         result.pop();
     }
     return neighbors;
-};
+}
 
-const Node* NSW::getNode(std::size_t idx) const{
+NodeShPtr NSW::getNode(std::size_t idx) const{
     return nodes.at(idx);
-};
+}
+
+void NSW::save(const std::string& filePath) {
+    std::ofstream ofs(filePath, std::ofstream::binary);
+
+    // save header
+    std::size_t N = nodes.size();
+    ofs.write(reinterpret_cast<char *>(&N), sizeof(N));
+
+    // save nodes
+    for (auto nodeShPtr : nodes) {
+        write_node(ofs, nodeShPtr.get());
+    }
+
+    // save neighbors
+    for (auto neighbors : nodeNeighbors) {
+        std::size_t numNeighbors = neighbors.size();
+        ofs.write(reinterpret_cast<char *>(&numNeighbors), sizeof(numNeighbors));
+        for (auto nodeIdx : neighbors) {
+            ofs.write(reinterpret_cast<char *>(&nodeIdx), sizeof(nodeIdx));
+        }
+    }
+
+    ofs.close();
+}
+
+void NSW::load(const std::string& filePath) {
+    std::ifstream ifs(filePath, std::ifstream::binary);
+
+    // load header
+    std::size_t N;
+    ifs.read(reinterpret_cast<char *>(&N), sizeof(N));
+
+    // load nodes
+    nodes.resize(N);
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        nodes[idx] = NodeShPtr(new Node());
+        read_node(ifs, const_cast<Node *>(nodes[idx].get()));
+    }
+
+    // load neighbors
+    nodeNeighbors.resize(N);
+    for (std::size_t idx = 0; idx < N; ++idx) {
+        std::size_t numNeighbors;
+        ifs.read(reinterpret_cast<char *>(&numNeighbors), sizeof(numNeighbors));
+        nodeNeighbors[idx].resize(numNeighbors);
+        ifs.read(reinterpret_cast<char *>(&nodeNeighbors[idx][0]), numNeighbors * sizeof(nodeNeighbors[idx][0]));
+    }
+
+    ifs.close();
+}
 
 }

@@ -1,34 +1,33 @@
-import numpy as np
-from python.index import PyNode, PyDistance_l1, PyDistance_l2, PyNSW
-from os.path import dirname, join, abspath
-from os import getenv
 import json
-import jsonpickle
+from os import getenv
+from os.path import abspath, join
+from tqdm import tqdm
+
+from python.index import create_node, PyNSW
+
+PATHS_JSON = getenv(
+    'PATHS_JSON',
+    abspath(join(__file__, '..', '..', 'data', 'paths.json')))
+EMBEDDING_JSON = getenv(
+    'EMBEDDING_JSON',
+    abspath(join(__file__, '..', '..', 'data', 'embeddings.json')))
 
 
+if __name__ == '__main__':
+    with open(PATHS_JSON) as fp:
+        paths = json.load(fp)
+    with open(EMBEDDING_JSON) as fp:
+        embeddings = json.load(fp)
 
+    nodes = [create_node(path, vector) for path, vector in zip(paths, embeddings)]
 
-PATHS_JSON = getenv('PATHS_JSON',
-                    abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'paths.json')))
-EMBEDDING_JSON = getenv('EMBEDDING_JSON',
-                        abspath(join(abspath(dirname(abspath(dirname(__file__)))), 'data', 'embeddings.json')))
+    nsw = PyNSW('l2')
+    for node in tqdm(nodes):
+        nsw.nn_insert(node, 1, 100)
 
-with open(PATHS_JSON, 'r') as fp:
-    PATHS = json.load(fp)
+    random_vector = embeddings[100]
+    print(paths[100])
+    print(random_vector)
 
-with open(EMBEDDING_JSON, 'r') as fp:
-    EMBEDDINGS = json.load(fp)
-
-nodes = [PyNode(path, vector) for path, vector in zip(PATHS, EMBEDDINGS)]
-
-nsw = PyNSW('l2')
-for node in nodes:
-    nsw.nn_insert(node, 1, 100)
-
-random_vector = EMBEDDINGS[100]
-print(PATHS[100])
-print(random_vector)
-
-neighbors = nsw.nn_search(PyNode('1', random_vector), 5, 3)
-
-print(neighbors)
+    neighbors = nsw.nn_search(create_node('kek', random_vector), 5, 3)
+    print(neighbors)
